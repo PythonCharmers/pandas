@@ -654,10 +654,11 @@ class DataFrame(NDFrame):
             s = Series(v, index=columns, name=k)
             yield k, s
 
-    def itertuples(self, index=True, name="Pandas"):
+    def itertuples(self, index=True, named=True, name="Pandas"):
         """
-        Iterate over the rows of DataFrame as namedtuples, with index value
-        as first element of the tuple.
+        Iterate over the rows of DataFrame as tuples (if named=False) or
+        namedtuples (if named=True), with index value as first element of the
+        tuple.
 
         Parameters
         ----------
@@ -705,12 +706,15 @@ class DataFrame(NDFrame):
         # things get slow with this many fields in Python 2
         if len(self.columns) + index < 256:
             # `rename` is unsupported in Python 2.6
-            try:
-                itertuple = collections.namedtuple(
-                    name, fields+list(self.columns), rename=True)
-                return (itertuple(*row) for row in zip(*arrays))
-            except:
-                pass
+            if named = True:
+                try:
+                    itertuple = collections.namedtuple(
+                        name, fields+list(self.columns), rename=True)
+                    return (itertuple(*row) for row in zip(*arrays))
+                except:
+                    pass
+            else:
+                return (*row for row in zip(*arrays))
 
         # fallback to regular tuples
         return zip(*arrays)
